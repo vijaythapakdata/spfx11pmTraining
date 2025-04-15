@@ -2,14 +2,16 @@ import * as React from 'react';
 import { ISubmitFormState } from './ISubmitFormState';
 import type { ISubmitFormProps } from './ISubmitFormProps';
 import { Web } from '@pnp/sp/webs';
-import { TextField,PrimaryButton } from '@fluentui/react';
+import { TextField,PrimaryButton, IDatePickerStrings, DatePicker } from '@fluentui/react';
 export default class SubmitForm extends React.Component<ISubmitFormProps,ISubmitFormState> {
   constructor(props:ISubmitFormProps){
     super(props);
     this.state={
       Name:"",
       Email:"",
-      Age:""
+      Age:"",
+      PermanentAddress:"",
+      DateOfBirth:""
     }
   }
   //Create Item
@@ -18,7 +20,9 @@ export default class SubmitForm extends React.Component<ISubmitFormProps,ISubmit
     await web.lists.getByTitle(this.props.ListName).items.add({
       Title:this.state.Name,
       EmailAddress:this.state.Email,
-      Age:parseInt(this.state.Age)
+      Age:parseInt(this.state.Age),
+      Address:this.state.PermanentAddress,
+      DOB:new Date(this.state.DateOfBirth)
     })
     .then((response)=>{
       console.log("No Error found");
@@ -26,7 +30,9 @@ export default class SubmitForm extends React.Component<ISubmitFormProps,ISubmit
       this.setState({
         Name:"",
         Email:"",
-        Age:""
+        Age:"",
+        PermanentAddress:"",
+        DateOfBirth:""
       });
       return response;
     })
@@ -54,9 +60,45 @@ export default class SubmitForm extends React.Component<ISubmitFormProps,ISubmit
       <TextField value={this.state.Age} label='Age'
      onChange={(_,event)=>this.handleChange("Age",event||"")}
      />
+      <TextField value={this.state.PermanentAddress} label='Permanent Address'
+     onChange={(_,event)=>this.handleChange("PermanentAddress",event||"")}
+     multiline
+     rows={5}
+     />
+     <DatePicker
+     label='Date of Birth'
+     strings={DatePickerStrings}
+     onSelectDate={(e)=>this.setState({DateOfBirth:e})}
+     formatDate={FormateDate}
+     value={this.state.DateOfBirth}
+     />
      <br/>
      <PrimaryButton text ="Submit" onClick={()=>this.createItem()} iconProps={{iconName:"Save"}}/>
      </>
     );
   }
 }
+//Date Formatting
+export const DatePickerStrings:IDatePickerStrings={
+  months:["January","February","March","April","May","June","July","August","September","October","November","December"],
+  shortMonths:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+  days:["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+  shortDays:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+  goToToday:"Go to today",
+  prevMonthAriaLabel:"Previous month",
+  nextMonthAriaLabel:"Next month",
+  prevYearAriaLabel:"Previous year",
+  nextYearAriaLabel:"Next year",
+
+}
+
+export const FormateDate=(date:any):string=>{
+  var date1=new Date(date);
+  var year=date1.getFullYear();
+  var month=(1+date1.getMonth()).toString();
+  month=month.length>1?month:"0"+month;
+  var day=date1.getDate().toString();
+  day=day.length>1?day:"0"+day;
+  return month+"/"+day+"/"+year;
+}
+
